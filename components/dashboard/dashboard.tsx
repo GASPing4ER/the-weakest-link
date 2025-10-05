@@ -33,7 +33,6 @@ export function Dashboard() {
 
   if (!currentProfile) return null;
 
-  const monthlyWorkouts = getCurrentMonthWorkouts();
   const userRank = getProfileRank(currentProfile.id);
   const workoutStreak = getWorkoutStreak(currentProfile.id);
   const isAtRisk = userRank > 7; // Bottom 3 out of 10

@@ -27,9 +27,18 @@ import {
   getDate,
   parseISO,
 } from "date-fns";
+import { useEffect } from "react";
 
 export function MonthlyStats() {
-  const { currentProfile, getCurrentMonthWorkouts } = useAppStore();
+  const { currentProfile, getCurrentMonthWorkouts, fetchWorkouts } =
+    useAppStore();
+
+  useEffect(() => {
+    const loadWorkouts = async () =>
+      currentProfile ? await fetchWorkouts(currentProfile.id) : null;
+
+    loadWorkouts();
+  }, [currentProfile]);
 
   if (!currentProfile) return null;
 
