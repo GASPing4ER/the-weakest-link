@@ -21,40 +21,45 @@ import {
   Target,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useLoadLeaderboardAndProfiles } from "@/hooks/use-load-leaderboard";
 import { Profile } from "@/lib/types";
+import { useLoadProfiles } from "@/hooks/use-load-profiles";
 
 export function Leaderboard() {
-  useLoadLeaderboardAndProfiles();
+  useLoadProfiles();
 
-  const { currentProfile, leaderboard, profiles } = useAppStore();
+  const { currentProfile, profiles } = useAppStore();
 
-  // Debug logs
-  console.log("LEADERBOARD STORE:", leaderboard);
-  console.log("PROFILES STORE:", profiles);
+  const sortedProfiles = profiles.sort((a, b) => {
+    // Primary: workouts desc
+    if (b.current_month_workouts !== a.current_month_workouts) {
+      return b.current_month_workouts - a.current_month_workouts;
+    }
+    // Secondary: minutes desc
+    return b.current_month_minutes - a.current_month_minutes;
+  });
 
-  if (!leaderboard.length || !profiles.length)
+  if (!profiles.length)
     return (
       <p className="text-center text-muted-foreground">
         Loading leaderboard...
       </p>
     );
 
-  // Map leaderboard entries to include full profile object
-  const leaderboardWithProfiles = leaderboard
-    .map((entry) => ({
-      ...entry,
-      profile: profiles.find((p) => p.id === entry.profile_id),
-    }))
-    .filter(
-      (entry): entry is typeof entry & { profile: Profile } => !!entry.profile
-    );
+  const leaderboard = sortedProfiles.map((profile, index) => ({
+    ...profile,
+    rank: index + 1,
+    is_at_risk: index + 1 > 7, // bottom performers
+    days_since_last_workout: profile.last_workout_date
+      ? Math.floor(
+          (Date.now() - new Date(profile.last_workout_date).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : null,
+  }));
 
-  console.log("LEADERBOARD WITH PROFILES:", leaderboardWithProfiles);
-
-  const topPerformer = leaderboardWithProfiles[0];
+  const topPerformer = leaderboard[0];
   const maxMinutes = Math.max(
-    ...leaderboardWithProfiles.map((entry) => entry.minutes_this_month)
+    ...leaderboard.map((entry) => entry.current_month_minutes)
   );
 
   const getRankIcon = (rank: number) => {
@@ -95,11 +100,9 @@ export function Leaderboard() {
                 <p className="text-sm font-medium text-muted-foreground">
                   Top Performer
                 </p>
-                <p className="text-2xl font-bold">
-                  {topPerformer.profile?.name}
-                </p>
+                <p className="text-2xl font-bold">{topPerformer.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {topPerformer.profile.current_month_minutes} minutes
+                  {topPerformer.current_month_minutes} minutes
                 </p>
               </div>
             </div>
@@ -116,10 +119,10 @@ export function Leaderboard() {
                 </p>
                 <p className="text-2xl font-bold">
                   {Math.round(
-                    leaderboardWithProfiles.reduce(
-                      (sum, entry) => sum + entry.profile.current_month_minutes,
+                    leaderboard.reduce(
+                      (sum, entry) => sum + entry.current_month_minutes,
                       0
-                    ) / leaderboardWithProfiles.length
+                    ) / leaderboard.length
                   )}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -139,10 +142,7 @@ export function Leaderboard() {
                   At Risk
                 </p>
                 <p className="text-2xl font-bold text-destructive">
-                  {
-                    leaderboardWithProfiles.filter((entry) => entry.is_at_risk)
-                      .length
-                  }
+                  {leaderboard.filter((entry) => entry.is_at_risk).length}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   users facing elimination
@@ -167,14 +167,14 @@ export function Leaderboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {leaderboardWithProfiles.map((entry) => {
-              const isCurrentProfile = entry.profile.id === currentProfile?.id;
+            {leaderboard.map((entry) => {
+              const isCurrentProfile = entry.id === currentProfile?.id;
               const progressPercentage =
-                (entry.profile.current_month_minutes / maxMinutes) * 100;
+                (entry.current_month_minutes / maxMinutes) * 100;
 
               return (
                 <div
-                  key={entry.profile?.id}
+                  key={entry.id}
                   className={`
                     p-4 rounded-lg border transition-all duration-200
                     ${getRankColor(entry.rank, entry.is_at_risk)}
@@ -191,7 +191,7 @@ export function Leaderboard() {
 
                       <Avatar className="hidden md:block h-10 w-10">
                         <AvatarFallback>
-                          {entry.profile.name
+                          {entry.name
                             .split(" ")
                             .map((n) => n[0])
                             .join("")
@@ -202,7 +202,7 @@ export function Leaderboard() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-2">
                           <h4 className="font-medium">
-                            {entry.profile.name}
+                            {entry.name}
                             {isCurrentProfile && (
                               <Badge
                                 variant="secondary"
@@ -223,34 +223,31 @@ export function Leaderboard() {
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
                           <div className="flex items-center space-x-1">
                             <Target className="h-3 w-3" />
-                            <span>
-                              {entry.profile.current_month_workouts} workouts
-                            </span>
+                            <span>{entry.current_month_workouts} workouts</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Clock className="h-3 w-3" />
-                            <span>
-                              {entry.profile.current_month_minutes} minutes
-                            </span>
+                            <span>{entry.current_month_minutes} minutes</span>
                           </div>
-                          {entry.days_since_last_workout > 0 && (
-                            <span
-                              className={`text-xs ${
-                                entry.days_since_last_workout > 3
-                                  ? "text-destructive"
-                                  : "text-yellow-600"
-                              }`}
-                            >
-                              {entry.days_since_last_workout}d ago
-                            </span>
-                          )}
+                          {entry.days_since_last_workout !== null &&
+                            entry.days_since_last_workout > 0 && (
+                              <span
+                                className={`text-xs ${
+                                  entry.days_since_last_workout > 3
+                                    ? "text-destructive"
+                                    : "text-yellow-600"
+                                }`}
+                              >
+                                {entry.days_since_last_workout}d ago
+                              </span>
+                            )}
                         </div>
                       </div>
                     </div>
 
                     <div className="hidden md:block text-right">
                       <p className="text-lg font-bold">
-                        {entry.profile.current_month_minutes}
+                        {entry.current_month_minutes}
                       </p>
                       <p className="text-xs text-muted-foreground">minutes</p>
                     </div>
@@ -299,10 +296,7 @@ export function Leaderboard() {
             <div className="flex justify-between text-sm">
               <span>Current weakest link:</span>
               <span className="font-medium text-destructive">
-                {
-                  leaderboardWithProfiles[leaderboardWithProfiles.length - 1]
-                    ?.profile?.name
-                }
+                {leaderboard[leaderboard.length - 1].name}
               </span>
             </div>
           </div>
