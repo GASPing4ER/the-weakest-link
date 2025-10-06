@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { QuickLogButton } from "@/components/workout/quick-log-button";
@@ -9,17 +11,19 @@ import {
   TrendingUp,
   AlertTriangle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { useLoadProfiles } from "@/hooks/use-load-profiles";
 
 export function Dashboard() {
+  useLoadProfiles();
+
   const {
     currentProfile,
-    getCurrentMonthWorkouts,
     getProfileRank,
     getWorkoutStreak,
     fetchWorkouts,
-    fetchLeaderboard,
     fetchWaitlist,
+    profiles,
   } = useAppStore();
 
   // Fetch data on mount
@@ -27,15 +31,25 @@ export function Dashboard() {
     if (currentProfile) {
       fetchWorkouts(currentProfile.id);
     }
-    fetchLeaderboard();
     fetchWaitlist();
-  }, [currentProfile, fetchWorkouts, fetchLeaderboard, fetchWaitlist]);
+  }, [currentProfile, fetchWorkouts, fetchWaitlist]);
 
   if (!currentProfile) return null;
 
-  const userRank = getProfileRank(currentProfile.id);
   const workoutStreak = getWorkoutStreak(currentProfile.id);
-  const isAtRisk = userRank > 7; // Bottom 3 out of 10
+
+  const sortedProfiles = profiles.sort((a, b) => {
+    // Primary: workouts desc
+    if (b.current_month_workouts !== a.current_month_workouts) {
+      return b.current_month_workouts - a.current_month_workouts;
+    }
+    // Secondary: minutes desc
+    return b.current_month_minutes - a.current_month_minutes;
+  });
+
+  const currentRank =
+    sortedProfiles.findIndex((p) => p.id === currentProfile.id) + 1;
+  const isAtRisk = currentRank > 7;
 
   const stats = [
     {
@@ -47,13 +61,13 @@ export function Dashboard() {
     },
     {
       title: "Current Rank",
-      value: userRank > 0 ? `#${userRank}` : "Unranked",
+      value: currentRank > 0 ? `#${currentRank}` : "Unranked",
       subtitle: "out of 10 active",
       icon: <Trophy className="h-5 w-5" />,
       color:
-        userRank <= 3
+        currentRank <= 3
           ? "text-green-600"
-          : userRank <= 7
+          : currentRank <= 7
           ? "text-yellow-600"
           : "text-red-600",
     },

@@ -21,7 +21,6 @@ import {
   Target,
 } from "lucide-react";
 import { format } from "date-fns";
-import { Profile } from "@/lib/types";
 import { useLoadProfiles } from "@/hooks/use-load-profiles";
 
 export function Leaderboard() {
