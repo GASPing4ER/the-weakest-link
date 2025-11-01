@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAppStore } from "@/lib/store";
@@ -22,9 +22,11 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useLoadProfiles } from "@/hooks/use-load-profiles";
+import { useRouter } from "next/navigation";
 
 export function Leaderboard() {
   useLoadProfiles();
+  const router = useRouter();
 
   const { currentProfile, profiles } = useAppStore();
 
@@ -173,9 +175,10 @@ export function Leaderboard() {
 
               return (
                 <div
+                  onClick={() => router.push(`/profile/${entry.id}`)}
                   key={entry.id}
                   className={`
-                    p-4 rounded-lg border transition-all duration-200
+                    p-4 rounded-lg border transition-all duration-200 cursor-pointer
                     ${getRankColor(entry.rank, entry.is_at_risk)}
                     ${
                       isCurrentProfile ? "ring-2 ring-primary/50 shadow-md" : ""
