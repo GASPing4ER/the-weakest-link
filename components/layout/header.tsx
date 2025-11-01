@@ -10,7 +10,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/components/auth/auth-provider";
-import { Trophy, Target, Users, LogOut, Home, BarChart3 } from "lucide-react";
+import {
+  Trophy,
+  Target,
+  Users,
+  LogOut,
+  Home,
+  BarChart3,
+  MessageCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
@@ -33,8 +41,9 @@ export function Header() {
   const navItems = [
     { href: "/", label: "Dashboard", icon: Home },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { href: "/feed", label: "Feed", icon: MessageCircle },
     { href: "/waitlist", label: "Waitlist", icon: Users },
-    ...(user.email === "admin@example.com"
+    ...(user.email === "simecgasper@gmail.com"
       ? [{ href: "/admin", label: "Admin", icon: BarChart3 }]
       : []),
   ];

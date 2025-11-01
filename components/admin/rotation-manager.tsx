@@ -61,10 +61,10 @@ export function RotationManager() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [daysUntilRotation, setDaysUntilRotation] = useState(15); // Mock value
 
-  const { currentUser } = useAppStore();
+  const { currentProfile } = useAppStore();
 
   // Only show to admin users
-  if (currentUser?.email !== "simecgasper@gmail.com") {
+  if (currentProfile?.email !== "simecgasper@gmail.com") {
     return null;
   }
 
