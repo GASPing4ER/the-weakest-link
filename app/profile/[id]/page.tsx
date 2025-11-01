@@ -80,91 +80,94 @@ export default function ProfilePage() {
   const maxMinutes = Math.max(...workouts.map((w) => w.duration_minutes), 1);
 
   return (
-    <div className="space-y-8 px-4 md:px-0 max-w-3xl mx-auto">
+    <div className="space-y-8 px-4 md:px-0">
       <Header />
+      <div className="max-w-3xl mx-auto">
+        {/* Profile Header */}
+        <Card className="p-4 flex items-center space-x-4">
+          <Avatar className="h-16 w-16">
+            <AvatarFallback>
+              {profile.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-2xl font-bold">{profile.name}</h1>
+            <p className="text-sm text-muted-foreground">
+              Workout entries for {format(new Date(), "MMMM yyyy")}
+            </p>
+          </div>
+        </Card>
 
-      {/* Profile Header */}
-      <Card className="p-4 flex items-center space-x-4">
-        <Avatar className="h-16 w-16">
-          <AvatarFallback>
-            {profile.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <h1 className="text-2xl font-bold">{profile.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            Workout entries for {format(new Date(), "MMMM yyyy")}
-          </p>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border border-green-300 bg-green-50">
+            <CardContent>
+              <p className="text-sm font-medium text-muted-foreground">
+                Total Workouts
+              </p>
+              <p className="text-2xl font-bold">{totalWorkouts}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-blue-300 bg-blue-50">
+            <CardContent>
+              <p className="text-sm font-medium text-muted-foreground">
+                Total Minutes
+              </p>
+              <p className="text-2xl font-bold">{totalMinutes} min</p>
+            </CardContent>
+          </Card>
         </div>
-      </Card>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border border-green-300 bg-green-50">
-          <CardContent>
-            <p className="text-sm font-medium text-muted-foreground">
-              Total Workouts
-            </p>
-            <p className="text-2xl font-bold">{totalWorkouts}</p>
-          </CardContent>
-        </Card>
+        {/* Workout Entries */}
+        <div className="space-y-4">
+          {workouts.length ? (
+            workouts.map((entry) => {
+              const progress = (entry.duration_minutes / maxMinutes) * 100;
 
-        <Card className="border border-blue-300 bg-blue-50">
-          <CardContent>
-            <p className="text-sm font-medium text-muted-foreground">
-              Total Minutes
-            </p>
-            <p className="text-2xl font-bold">{totalMinutes} min</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Workout Entries */}
-      <div className="space-y-4">
-        {workouts.length ? (
-          workouts.map((entry) => {
-            const progress = (entry.duration_minutes / maxMinutes) * 100;
-
-            return (
-              <Card
-                key={entry.id}
-                className="border hover:shadow-md transition-shadow"
-              >
-                <CardContent className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0">
-                  <div>
-                    <p className="font-medium text-lg">{entry.activity_type}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(entry.date), "PPP")}
-                    </p>
-                    {entry.notes && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {entry.notes}
+              return (
+                <Card
+                  key={entry.id}
+                  className="border hover:shadow-md transition-shadow"
+                >
+                  <CardContent className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0">
+                    <div>
+                      <p className="font-medium text-lg">
+                        {entry.activity_type}
                       </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col items-end space-y-1">
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <Target className="h-3 w-3" />
-                      <span>1 workout</span>
-                      <Clock className="h-3 w-3" />
-                      <span>{entry.duration_minutes} min</span>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(entry.date), "PPP")}
+                      </p>
+                      {entry.notes && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {entry.notes}
+                        </p>
+                      )}
                     </div>
-                    <Progress value={progress} className="h-2 w-32 mt-1" />
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        ) : (
-          <p className="text-center text-muted-foreground mt-4">
-            No workouts recorded this month.
-          </p>
-        )}
+
+                    <div className="flex flex-col items-end space-y-1">
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <Target className="h-3 w-3" />
+                        <span>1 workout</span>
+                        <Clock className="h-3 w-3" />
+                        <span>{entry.duration_minutes} min</span>
+                      </div>
+                      <Progress value={progress} className="h-2 w-32 mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <p className="text-center text-muted-foreground mt-4">
+              No workouts recorded this month.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
