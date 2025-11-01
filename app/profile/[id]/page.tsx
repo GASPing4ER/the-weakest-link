@@ -3,19 +3,12 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Target } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { Profile, Workout } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import { Header } from "@/components/layout/header";
-import { Progress } from "@/components/ui/progress";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -156,7 +149,6 @@ export default function ProfilePage() {
                         <Clock className="h-3 w-3" />
                         <span>{entry.duration_minutes} min</span>
                       </div>
-                      <Progress value={progress} className="h-2 w-32 mt-1" />
                     </div>
                   </CardContent>
                 </Card>
