@@ -46,9 +46,9 @@ export default function FeedPage() {
           supabase
             .from("workouts")
             .select("*, profiles(id, name)")
-            .gte("date", start)
-            .lte("date", end)
-            .order("date", { ascending: false }),
+            .gte("created_at", start)
+            .lte("created_at", end)
+            .order("created_at", { ascending: false }),
           supabase
             .from("comments")
             .select("*, profiles(id, name)")
