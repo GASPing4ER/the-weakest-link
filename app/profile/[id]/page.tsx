@@ -42,9 +42,9 @@ export default function ProfilePage() {
         .from("workouts")
         .select("*")
         .eq("profile_id", params.id)
-        .gte("date", start)
-        .lte("date", end)
-        .order("date", { ascending: false });
+        .gte("created_at", start)
+        .lte("created_at", end)
+        .order("created_at", { ascending: false });
 
       setWorkouts(workoutsData || []);
       setLoading(false);
