@@ -27,6 +27,7 @@ export interface Workout {
   duration_minutes: number;
   date: string;
   notes?: string;
+  img_url?: string;
   created_at: string;
 }
 

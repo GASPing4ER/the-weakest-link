@@ -125,24 +125,58 @@ export default function ProfilePage() {
               return (
                 <Card
                   key={entry.id}
-                  className="border hover:shadow-md transition-shadow"
+                  className="border hover:shadow-md transition-shadow overflow-hidden"
                 >
-                  <CardContent className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0">
-                    <div>
-                      <p className="font-medium text-lg">
-                        {entry.activity_type}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(entry.date), "PPP")}
-                      </p>
+                  {/* If image exists, show it */}
+                  {entry.img_url && (
+                    <div className="relative w-full h-48 md:h-56 overflow-hidden">
+                      <img
+                        src={entry.img_url}
+                        alt={`${entry.activity_type} workout`}
+                        className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+                      <div className="absolute bottom-3 left-3 text-white">
+                        <p className="font-semibold capitalize text-lg">
+                          {entry.activity_type}
+                        </p>
+                        <p className="text-xs opacity-90">
+                          {format(new Date(entry.date), "PPP")}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <CardContent
+                    className={`flex flex-col md:flex-row justify-between items-start md:items-center ${
+                      entry.img_url ? "pt-4" : "pt-6"
+                    }`}
+                  >
+                    {/* Left Section */}
+                    <div className="space-y-1">
+                      {!entry.img_url && (
+                        <>
+                          <p className="font-medium text-lg capitalize">
+                            {entry.activity_type}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(entry.date), "PPP")}
+                          </p>
+                        </>
+                      )}
                       {entry.notes && (
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p
+                          className={`text-sm text-muted-foreground ${
+                            entry.img_url ? "mt-1" : "mt-2"
+                          }`}
+                        >
                           {entry.notes}
                         </p>
                       )}
                     </div>
 
-                    <div className="flex flex-col items-end space-y-1">
+                    {/* Right Section */}
+                    <div className="flex flex-col items-end space-y-1 mt-3 md:mt-0">
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <Target className="h-3 w-3" />
                         <span>1 workout</span>

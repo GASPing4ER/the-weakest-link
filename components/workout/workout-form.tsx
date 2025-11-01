@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppStore } from "@/lib/store";
-import { createWorkout } from "@/lib/supabase-actions";
+import { createWorkout, uploadWorkoutImage } from "@/lib/supabase-actions";
 import type { WorkoutType } from "@/lib/types";
 import {
   Bike,
@@ -28,6 +28,7 @@ import {
   Flower2,
   Target,
   Plus,
+  ImageIcon,
 } from "lucide-react";
 
 const workoutTypes: {
@@ -101,9 +102,10 @@ export function WorkoutForm({ onSuccess, onCancel }: WorkoutFormProps) {
   const [selectedType, setSelectedType] = useState<WorkoutType | null>(null);
   const [duration, setDuration] = useState("");
   const [notes, setNotes] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Add at the top with useState
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -128,12 +130,18 @@ export function WorkoutForm({ onSuccess, onCancel }: WorkoutFormProps) {
     setError(null);
 
     try {
+      let uploadedImgUrl: string | undefined = undefined;
+      if (imageFile) {
+        uploadedImgUrl = await uploadWorkoutImage(imageFile, currentProfile.id);
+      }
+
       const workoutData = {
         profile_id: currentProfile.id,
         activity_type: selectedType,
         duration_minutes: durationNum,
         date: selectedDate,
         notes: notes.trim() || undefined,
+        img_url: uploadedImgUrl,
       };
 
       // Create workout in Supabase
@@ -150,12 +158,22 @@ export function WorkoutForm({ onSuccess, onCancel }: WorkoutFormProps) {
       setSelectedType(null);
       setDuration("");
       setNotes("");
+      setImageFile(null);
+      setImagePreview(null);
 
       onSuccess?.();
     } catch (err: any) {
       setError(err.message || "Failed to log workout");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -256,11 +274,69 @@ export function WorkoutForm({ onSuccess, onCancel }: WorkoutFormProps) {
             />
           </div>
 
+          <div className="space-y-2">
+            <Label
+              htmlFor="image"
+              className="text-base font-medium flex items-center gap-2"
+            >
+              <ImageIcon className="w-4 h-4" /> Upload Image{" "}
+              <span className="text-destructive">*</span>
+            </Label>
+
+            <label
+              htmlFor="image"
+              className={`
+      flex flex-col items-center justify-center w-full border-2 border-dashed rounded-xl cursor-pointer
+      transition-all duration-200 p-6 text-center
+      ${
+        isLoading
+          ? "opacity-50 cursor-not-allowed"
+          : "hover:border-primary hover:bg-accent/30"
+      }
+    `}
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full rounded-lg border object-cover max-h-64"
+                />
+              ) : (
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="p-3 rounded-full bg-primary/10">
+                    <ImageIcon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      Click to upload
+                    </span>{" "}
+                    or drag & drop
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    PNG, JPG or JPEG up to 5MB
+                  </p>
+                </div>
+              )}
+            </label>
+
+            <Input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              required
+              disabled={isLoading}
+              className="hidden"
+            />
+          </div>
+
           <div className="flex space-x-3 pt-4">
             <Button
               type="submit"
               className="flex-1 bg-primary hover:bg-primary/90"
-              disabled={isLoading || !selectedType || !duration}
+              disabled={
+                isLoading || !selectedType || !duration || !notes || !imageFile
+              }
             >
               {isLoading ? "Logging Workout..." : "Log Workout"}
             </Button>

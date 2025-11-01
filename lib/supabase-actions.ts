@@ -313,3 +313,21 @@ export async function getWaitlistProfiles(): Promise<{
 
   return { data, error };
 }
+
+export async function uploadWorkoutImage(file: File, profileId: string) {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${profileId}-${Date.now()}.${fileExt}`;
+  const filePath = `${profileId}/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("workout-images")
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("workout-images").getPublicUrl(filePath);
+
+  return publicUrl;
+}

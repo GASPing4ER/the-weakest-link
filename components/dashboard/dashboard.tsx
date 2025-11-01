@@ -19,7 +19,6 @@ export function Dashboard() {
 
   const {
     currentProfile,
-    getProfileRank,
     getWorkoutStreak,
     fetchWorkouts,
     fetchWaitlist,
