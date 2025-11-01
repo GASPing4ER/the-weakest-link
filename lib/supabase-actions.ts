@@ -43,7 +43,8 @@ export async function getProfiles(): Promise<{
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
-    .order("current_month_minutes", { ascending: false });
+    .order("current_month_minutes", { ascending: false })
+    .eq("status", "active");
 
   return { data, error };
 }
