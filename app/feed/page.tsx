@@ -6,7 +6,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/layout/header";
-import { formatDistanceToNow, parseISO } from "date-fns";
+import {
+  formatDistanceToNow,
+  parseISO,
+  startOfMonth,
+  endOfMonth,
+} from "date-fns";
 import { useAppStore } from "@/lib/store";
 import clsx from "clsx";
 import type { Workout, Profile } from "@/lib/types";
@@ -33,13 +38,17 @@ export default function FeedPage() {
     const fetchData = async () => {
       setLoading(true);
 
+      const start = startOfMonth(new Date()).toISOString();
+      const end = endOfMonth(new Date()).toISOString();
+
       const [{ data: workoutsData }, { data: commentsData }] =
         await Promise.all([
           supabase
             .from("workouts")
             .select("*, profiles(id, name)")
-            .order("date", { ascending: false })
-            .limit(30),
+            .gte("date", start)
+            .lte("date", end)
+            .order("date", { ascending: false }),
           supabase
             .from("comments")
             .select("*, profiles(id, name)")
@@ -76,7 +85,6 @@ export default function FeedPage() {
       .single();
 
     if (!error && data) {
-      // Optimistically update state
       setComments((prev) => [...prev, data as Comment]);
       setNewComments((prev) => ({ ...prev, [workoutId]: "" }));
     }
@@ -93,12 +101,12 @@ export default function FeedPage() {
       <main className="flex-1 overflow-y-auto w-full">
         <div className="max-w-[800px] mx-auto w-full p-4 space-y-6">
           <h1 className="text-2xl font-bold mb-4 text-center">
-            Community Feed
+            Community Feed (This Month)
           </h1>
 
           {workouts.length === 0 && (
             <p className="text-center text-muted-foreground">
-              No recent workouts yet.
+              No workouts recorded this month.
             </p>
           )}
 
@@ -196,7 +204,7 @@ export default function FeedPage() {
                               <p>{comment.content}</p>
                               <p className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(
-                                  parseISO(workout.created_at),
+                                  parseISO(comment.created_at),
                                   {
                                     addSuffix: true,
                                   }
